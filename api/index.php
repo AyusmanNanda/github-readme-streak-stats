@@ -35,6 +35,16 @@ if (!isset($_REQUEST["user"])) {
 try {
     // get streak stats for user given in query string
     $user = preg_replace("/[^a-zA-Z0-9\-]/", "", $_REQUEST["user"]);
+    // Restrict access to allowed users (env-based, deny by default)
+    $allowedUsers = isset($_ENV["ALLOWED_USERS"])
+        ? array_filter(array_map('strtolower', array_map('trim', explode(',', $_ENV["ALLOWED_USERS"]))))
+        : [];
+
+    if (!$user || !in_array(strtolower($user), $allowedUsers, true)) {
+        renderOutput("Not found", 404);
+        exit();
+    }
+    
     $startingYear = isset($_REQUEST["starting_year"]) ? intval($_REQUEST["starting_year"]) : null;
     $mode = isset($_GET["mode"]) ? $_GET["mode"] : null;
     $excludeDaysRaw = $_GET["exclude_days"] ?? "";
